@@ -163,7 +163,8 @@ public class ToDo {
                 2. Edit Task
                 3. Delete Task
                 4. Mark Completion
-                5. Show Tasks\n""");
+                5. Show Tasks
+                """);
 
         while (true) {
             int input = myInputManager.takeIntInput();
