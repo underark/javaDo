@@ -1,148 +1,4 @@
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Scanner;
-import java.io.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonIOException;
-import com.google.gson.annotations.Expose;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-
-
-class Task {
-    @Expose
-    String title;
-    @Expose
-    String dueDate;
-    @Expose
-    boolean completion;
-    @Expose
-    ArrayList<String> tags;
-
-    public Task(String title, String dueDate) {
-        this.title = title;
-        this.dueDate = dueDate;
-        completion = false;
-        tags = new ArrayList<>();
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDueDate() {
-        return dueDate;
-    }
-
-    public boolean getCompletion() {
-        return completion;
-    }
-}
-
-class TaskManager {
-    ArrayList<Task> taskList;
-    ArrayList<Task> deletedTasks;
-
-    public TaskManager() {
-        taskList = new ArrayList<>();
-        deletedTasks = new ArrayList<>();
-    }
-
-    public void storeTask(Task task) {
-        taskList.add(task);
-    }
-
-    public void showTasks(ArrayList<Task> tasks) {
-        int i = 1;
-        System.out.println("Task Title, Due Date, Completed, Tags");
-        for (Task task : tasks)
-            System.out.println(i + ". " + task.title + ", " + task.dueDate + ", " + task.completion + ", " + task.tags);
-        System.out.println("\n");
-    }
-
-    public ArrayList<Task> findOverdue() {
-        ArrayList<Task> overdueTasks = new ArrayList<>();
-        for (Task task : taskList) {
-            LocalDate date = LocalDate.parse(task.dueDate);
-            if (date.isBefore(LocalDate.now()) && !task.completion) {
-                overdueTasks.add(task);
-            }
-        }
-        return overdueTasks;
-    }
-
-    public void markCompleted(int selectedTask) {
-        taskList.get(selectedTask - 1).completion = !taskList.get(selectedTask - 1).completion;
-    }
-}
-
-class FileManager {
-    File file;
-    Gson gson;
-    JsonReader reader;
-    FileWriter writer;
-
-    public FileManager(String filename) {
-        gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-
-        try {
-            file = new File(filename);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void readFromFile(TaskManager myTaskManager) {
-        try {
-            if (!file.exists()) file.createNewFile();
-            reader = new JsonReader(new FileReader(file));
-            try {
-                myTaskManager.taskList = gson.fromJson(reader, new TypeToken<ArrayList<Task>>(){}.getType());
-                if (myTaskManager.taskList == null) {
-                    myTaskManager.taskList = new ArrayList<>();
-                }
-            } catch (JsonIOException e) {
-                throw new JsonIOException(e);
-            }
-            reader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void writeToFile(ArrayList<Task> tasks) {
-        try {
-            writer = new FileWriter(file);
-            try {
-                gson.toJson(tasks, writer);
-            } catch (JsonIOException e) {
-                throw new RuntimeException(e);
-            }
-            writer.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-
-class InputManager {
-    Scanner menuInput;
-
-    public InputManager() {
-        menuInput = new Scanner(System.in);
-    }
-
-    public int takeIntInput() {
-        int userInput = menuInput.nextInt();
-        menuInput.nextLine();
-        return userInput;
-    }
-
-    public String takeStringInput() {
-        return menuInput.nextLine();
-    }
-}
 
 public class ToDo {
     public static void main(String[] args) {
@@ -169,66 +25,38 @@ public class ToDo {
                 6. Show Tasks""");
 
         while (true) {
-            int input = myInputManager.takeIntInput();
+            int input = myInputManager.takeMenuInput(0, 6);
             switch (input) {
                 case 0:
                     myFileManager.writeToFile(myTaskManager.taskList);
-                    myInputManager.menuInput.close();
+                    myInputManager.closeScanner();
                     return;
                 case 1:
-                    System.out.println("Task Title: ");
-                    String taskName = myInputManager.takeStringInput();
-                    System.out.println("Due Date: (YYYY-MM-DD)");
-                    String dueDate = myInputManager.takeStringInput();
-                    Task newTask = new Task(taskName, dueDate);
-                    myTaskManager.storeTask(newTask);
+                    myTaskManager.storeTask(myTaskManager.collectTaskData(myInputManager));
                     break;
                 case 2:
-                    System.out.println("Select task to edit");
-                    int selectEditTask = myInputManager.takeIntInput() - 1;
-                    Task editTask = myTaskManager.taskList.get(selectEditTask);
-                    System.out.println("Select field to edit: 1. Title, 2. Due Date 3. Tags");
-                    int selectEditField = myInputManager.takeIntInput();
-                    System.out.println("Input new value");
-                    String newValue = myInputManager.takeStringInput();
-                    if (selectEditField == 1) {
-                        editTask.title = newValue;
-                    } else if (selectEditField == 2) {
-                        editTask.dueDate = newValue;
-                    } else {
-                        System.out.println("Select tag to edit");
-                        System.out.println(editTask.tags);
-                        int editTagNumber = myInputManager.takeIntInput() - 1;
-                        editTask.tags.set(editTagNumber, newValue);
-                    }
+                    myTaskManager.editTask(myInputManager);
                     break;
                 case 3:
-                    System.out.println("Select task to delete (0 to undo last delete)");
-                    int selectDeleteTask = myInputManager.takeIntInput();
-                    if (selectDeleteTask == 0 && !myTaskManager.deletedTasks.isEmpty()) {
-                        int lastDeleted = myTaskManager.deletedTasks.size() - 1;
-                        myTaskManager.taskList.add(myTaskManager.deletedTasks.get(lastDeleted));
-                    } else {
-                        Task removed = myTaskManager.taskList.remove(selectDeleteTask - 1);
-                        myTaskManager.deletedTasks.add(removed);
-                    }
+                    myTaskManager.deleteTask(myInputManager);
                     break;
                 case 4:
                     myTaskManager.showTasks(myTaskManager.taskList);
-                    System.out.println("Select task to mark completed");
-                    int selectCompleteTask = myInputManager.takeIntInput();
+                    int selectCompleteTask = myInputManager.takeZeroIndexInput(myTaskManager.taskList.size());
                     myTaskManager.markCompleted(selectCompleteTask);
                     break;
                 case 5:
-                    System.out.println("1. Add tag 2. Filter by tag");
-                    int tagMenuOption = myInputManager.takeIntInput();
-                    if (tagMenuOption == 1) {
-                        System.out.println("Input task number to add tag");
-                        myTaskManager.showTasks(myTaskManager.taskList);
-                        int selectAddTag = myInputManager.takeIntInput();
-                        System.out.println("Input tag");
-                        String tagInput = myInputManager.takeStringInput();
-                        myTaskManager.taskList.get(selectAddTag - 1).tags.add(tagInput);
+                    System.out.println("1. Add tag 2. Edit Tag 3. Filter by tag");
+                    int tagMenuInput = myInputManager.takeMenuInput(1, 3);
+                    if (tagMenuInput == 1) {
+                        myTaskManager.addTag(myInputManager);
+                    } else if (tagMenuInput == 2) {
+                        myTaskManager.editTag(myInputManager);
+                    } else {
+                        System.out.println("Input tag to search");
+                        String searchTag = myInputManager.takeStringInput();
+                        ArrayList<Task> foundTags = myTaskManager.findTags(searchTag);
+                        myTaskManager.showTasks(foundTags);
                     }
                     break;
                 case 6:
