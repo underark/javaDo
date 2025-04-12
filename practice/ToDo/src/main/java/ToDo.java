@@ -17,11 +17,14 @@ class Task {
     String dueDate;
     @Expose
     boolean completion;
+    @Expose
+    ArrayList<String> tags;
 
     public Task(String title, String dueDate) {
         this.title = title;
         this.dueDate = dueDate;
         completion = false;
+        tags = new ArrayList<>();
     }
 
     public String getTitle() {
@@ -52,10 +55,9 @@ class TaskManager {
 
     public void showTasks(ArrayList<Task> tasks) {
         int i = 1;
-        System.out.println("Task Title, Due Date, Completed");
-        for (Task task : tasks) {
-            System.out.println(i + ". " + task.title + ", " + task.dueDate + ", " + task.completion);
-        }
+        System.out.println("Task Title, Due Date, Completed, Tags");
+        for (Task task : tasks)
+            System.out.println(i + ". " + task.title + ", " + task.dueDate + ", " + task.completion + ", " + task.tags);
         System.out.println("\n");
     }
 
@@ -63,7 +65,7 @@ class TaskManager {
         ArrayList<Task> overdueTasks = new ArrayList<>();
         for (Task task : taskList) {
             LocalDate date = LocalDate.parse(task.dueDate);
-            if (date.isBefore(LocalDate.now())) {
+            if (date.isBefore(LocalDate.now()) && !task.completion) {
                 overdueTasks.add(task);
             }
         }
@@ -163,8 +165,8 @@ public class ToDo {
                 2. Edit Task
                 3. Delete Task
                 4. Mark Completion
-                5. Show Tasks
-                """);
+                5. Add/Filter tags
+                6. Show Tasks""");
 
         while (true) {
             int input = myInputManager.takeIntInput();
@@ -183,15 +185,21 @@ public class ToDo {
                     break;
                 case 2:
                     System.out.println("Select task to edit");
-                    int selectEditTask = myInputManager.takeIntInput();
-                    System.out.println("Select field to edit: 1. Title, 2. Due Date");
+                    int selectEditTask = myInputManager.takeIntInput() - 1;
+                    Task editTask = myTaskManager.taskList.get(selectEditTask);
+                    System.out.println("Select field to edit: 1. Title, 2. Due Date 3. Tags");
                     int selectEditField = myInputManager.takeIntInput();
                     System.out.println("Input new value");
                     String newValue = myInputManager.takeStringInput();
                     if (selectEditField == 1) {
-                        myTaskManager.taskList.get(selectEditTask - 1).title = newValue;
+                        editTask.title = newValue;
+                    } else if (selectEditField == 2) {
+                        editTask.dueDate = newValue;
                     } else {
-                        myTaskManager.taskList.get(selectEditTask - 1).dueDate = newValue;
+                        System.out.println("Select tag to edit");
+                        System.out.println(editTask.tags);
+                        int editTagNumber = myInputManager.takeIntInput() - 1;
+                        editTask.tags.set(editTagNumber, newValue);
                     }
                     break;
                 case 3:
@@ -212,6 +220,18 @@ public class ToDo {
                     myTaskManager.markCompleted(selectCompleteTask);
                     break;
                 case 5:
+                    System.out.println("1. Add tag 2. Filter by tag");
+                    int tagMenuOption = myInputManager.takeIntInput();
+                    if (tagMenuOption == 1) {
+                        System.out.println("Input task number to add tag");
+                        myTaskManager.showTasks(myTaskManager.taskList);
+                        int selectAddTag = myInputManager.takeIntInput();
+                        System.out.println("Input tag");
+                        String tagInput = myInputManager.takeStringInput();
+                        myTaskManager.taskList.get(selectAddTag - 1).tags.add(tagInput);
+                    }
+                    break;
+                case 6:
                     myTaskManager.showTasks(myTaskManager.taskList);
                     break;
                 default: break;
