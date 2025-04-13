@@ -2,12 +2,10 @@ import java.util.ArrayList;
 
 public class ToDo {
     public static void main(String[] args) {
-        InputManager myInputManager = new InputManager();
-
         TaskManager myTaskManager = new TaskManager();
 
         FileManager myFileManager = new FileManager("toDo.json");
-        myFileManager.readFromFile(myTaskManager);
+        myTaskManager.taskList = myFileManager.readFromFile();
 
         ArrayList<Task> overdueTasks = myTaskManager.findOverdue();
         if (!overdueTasks.isEmpty()) {
@@ -15,49 +13,39 @@ public class ToDo {
             myTaskManager.showTasks(overdueTasks);
         }
 
-        System.out.println("""
-                0. Save and quit
-                1. Add Task
-                2. Edit Task
-                3. Delete Task
-                4. Mark Completion
-                5. Add/Filter tags
-                6. Show Tasks""");
-
         while (true) {
-            int input = myInputManager.takeMenuInput(0, 6);
-            switch (input) {
+            System.out.println("""
+                1. Save and quit
+                2. Add Task
+                3. Edit Task
+                4. Delete Task
+                5. Mark Completion
+                6. Add/Filter tags
+                7. Show Tasks""");
+            int menuInput = TaskManager.MenuNavigator.getMenuInput("Input a number between 1 and 7", 7);
+            switch (menuInput) {
                 case 0:
                     myFileManager.writeToFile(myTaskManager.taskList);
-                    myInputManager.closeScanner();
                     return;
                 case 1:
-                    myTaskManager.storeTask(myTaskManager.collectTaskData(myInputManager));
+                    Task newTask = myTaskManager.createNewTaskFromInput();
+                    myTaskManager.storeTask(newTask);
                     break;
                 case 2:
-                    myTaskManager.editTask(myInputManager);
+                    myTaskManager.editTask();
                     break;
                 case 3:
-                    myTaskManager.deleteTask(myInputManager);
+                    myTaskManager.deleteTask();
                     break;
                 case 4:
                     myTaskManager.showTasks(myTaskManager.taskList);
-                    int selectCompleteTask = myInputManager.takeZeroIndexInput(myTaskManager.taskList.size());
+                    int selectCompleteTask = TaskManager.MenuNavigator.getMenuInput("Choose a task to mark completed", myTaskManager.taskList.size());
                     myTaskManager.markCompleted(selectCompleteTask);
                     break;
                 case 5:
-                    System.out.println("1. Add tag 2. Edit Tag 3. Filter by tag");
-                    int tagMenuInput = myInputManager.takeMenuInput(1, 3);
-                    if (tagMenuInput == 1) {
-                        myTaskManager.addTag(myInputManager);
-                    } else if (tagMenuInput == 2) {
-                        myTaskManager.editTag(myInputManager);
-                    } else {
-                        System.out.println("Input tag to search");
-                        String searchTag = myInputManager.takeStringInput();
-                        ArrayList<Task> foundTags = myTaskManager.findTags(searchTag);
-                        myTaskManager.showTasks(foundTags);
-                    }
+                    String searchTag = TaskManager.MenuNavigator.getTextInput("Input a tag to search");
+                    ArrayList<Task> foundTags = myTaskManager.findTags(searchTag);
+                    myTaskManager.showTasks(foundTags);
                     break;
                 case 6:
                     myTaskManager.showTasks(myTaskManager.taskList);

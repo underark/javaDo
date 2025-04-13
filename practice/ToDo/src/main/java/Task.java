@@ -1,5 +1,4 @@
 import com.google.gson.annotations.Expose;
-import java.util.ArrayList;
 
 public class Task {
     @Expose
@@ -9,13 +8,13 @@ public class Task {
     @Expose
     private boolean completion;
     @Expose
-    private ArrayList<String> tags;
+    private String tag;
 
-    public Task(String title, String dueDate) {
+    public Task(String title, String dueDate, String tag) {
         this.title = title;
         this.dueDate = dueDate;
         completion = false;
-        tags = new ArrayList<>();
+        this.tag = tag;
     }
 
     public String getTitle() {
@@ -30,8 +29,8 @@ public class Task {
         return completion;
     }
 
-    public ArrayList<String> getTags() {
-        return this.tags;
+    public String getTag() {
+        return this.tag;
     }
 
     public void changeTitle(String newTitle) {
@@ -41,6 +40,11 @@ public class Task {
     public void changeDueDate(String newDueDate) {
         this.dueDate = newDueDate;
     }
+
+    public void changeTag(String newTag) {
+        this.tag = newTag;
+    }
+
 
     public void changeCompletion(boolean newCompletion) {
         this.completion = newCompletion;
