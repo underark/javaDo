@@ -38,14 +38,10 @@ public class ToDo {
                     myTaskManager.deleteTask();
                     break;
                 case 4:
-                    myTaskManager.showTasks(myTaskManager.taskList);
-                    int selectCompleteTask = TaskManager.MenuNavigator.getMenuInput("Choose a task to mark completed", myTaskManager.taskList.size());
-                    myTaskManager.markCompleted(selectCompleteTask);
+                    myTaskManager.completeTask();
                     break;
                 case 5:
-                    String searchTag = TaskManager.MenuNavigator.getTextInput("Input a tag to search");
-                    ArrayList<Task> foundTags = myTaskManager.findTags(searchTag);
-                    myTaskManager.showTasks(foundTags);
+                    myTaskManager.serveTags();
                     break;
                 case 6:
                     myTaskManager.showTasks(myTaskManager.taskList);

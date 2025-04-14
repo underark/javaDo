@@ -101,6 +101,18 @@ public class TaskManager {
         System.out.println("Task marked completed successfully");
     }
 
+    public void completeTask() {
+        this.showTasks(taskList);
+        int selectedTask = MenuNavigator.getMenuInput("Choose a task to mark completed", taskList.size());
+        this.markCompleted(selectedTask);
+    }
+
+    public void serveTags() {
+        String searchTag = MenuNavigator.getTextInput("Input a tag to search");
+        ArrayList<Task> foundTags = findTags(searchTag);
+        this.showTasks(foundTags);
+    }
+
     final static class  MenuNavigator {
         private MenuNavigator() {}
 
